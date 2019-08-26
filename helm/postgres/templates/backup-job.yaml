@@ -1,0 +1,39 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: {{ include "postgres.fullname" . }}
+spec:
+  schedule: {{ .Values.job.freq }}
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+          - name: {{ .Chart.Name }}
+            image: "{{ .Values.job.repository }}:{{ .Values.job.tag }}"
+            imagePullPolicy: {{ .Values.job.pullPolicy }}
+            env:
+            - name: PGHOST
+              value: {{ .Values.image.PGHOST }}
+            - name: PGDATABASE
+              value: {{ .Values.image.PGDATABASE }}
+            - name: PGUSER
+              value: {{ .Values.image.PGUSER }}
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: pgpassword 
+                  key: PGPASSWORD
+            - name: AWS_DEFAULT_REGION
+              value: "us-east-1"
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: awsaccesskey
+                  key: AWS_ACCESS_KEY_ID
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: awssecretaccesskey
+                  key: AWS_SECRET_ACCESS_KEY
